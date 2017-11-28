@@ -1,0 +1,275 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+
+	<style>
+		#canvas{
+	//		width:800px;
+	//		height:600px;
+		}	
+		dl {
+			display: block;
+			-webkit-margin-before: 0em;
+			-webkit-margin-after: 0em;
+			-webkit-margin-start: 0px;
+			-webkit-margin-end: 0px;
+		}
+		
+		dd{
+			padding-left:20px;
+			-webkit-margin-start: 0px;
+		}
+		a {
+			color: #0095dd;
+			text-decoration: none;
+		}
+		code {
+			font-family: Consolas,"Liberation Mono",Courier,monospace;
+			word-wrap: break-word;
+		}
+	</style>
+</head>
+
+<body>
+<div width="95%">
+<h3>Circle</h3>
+<img src="../arc.gif" alt="弧/曲线">
+<div>
+<canvas width="800" height="600" id="canvas" style="border: 1px solid rgb(68, 68, 68); cursor: default;" >
+</canvas>
+
+</body>
+<script language="javaScript" >
+	var i  =0;
+	var wallLeft = true;
+	wallLeft&&i++;
+	wallLeft = false;
+	wallLeft&&i++;
+	var wallLeft = true;
+	wallLeft&&i++;
+	console.log(i);
+	draw('canvas');
+
+	function draw(id) {
+		var canvas = document.getElementById(id);
+		if (canvas == null)
+			return false;
+		var ctx = canvas.getContext("2d");
+		
+		ctx.beginPath();
+		ctx.moveTo(50,20);
+		ctx.bezierCurveTo(230, 30, 150, 60, 50, 100);
+		ctx.stroke();
+
+		ctx.fillStyle = 'blue';
+		// start point
+		ctx.fillRect(50, 20, 10, 10);
+		// end point
+		ctx.fillRect(50, 100, 10, 10);
+
+		ctx.fillStyle = 'red';
+		// control point one
+		ctx.fillRect(230, 30, 10, 10);
+		// control point two
+		ctx.fillRect(150, 60, 10, 10);
+		ctx.translate(0,200);
+		
+		
+		var violet = '#FF55FF';  //紫色
+		addGost(ctx,36,50,violet,'up');
+
+		var blueness = '#7FD4FF';   //青
+		addGost(ctx,136,50,blueness,'right');
+			
+		var brown = '#AF3030';  //棕色
+		addGost(ctx,36,150,brown,'down');
+		
+		var orange = '#FF7F00';  //橙色
+		addGost(ctx,136,150,orange,'left');
+		
+		
+	}//end draw
+	var beanLen = 4;
+	var unitLen = 4;
+	
+	/**
+	 * x 、y : 绝对坐标...
+	 * color :'#FFFFFF'
+	 * dir : 'up'|'down'|'left'|'right'
+	 */
+	function addGost(ctx,x,y,color,dir){
+		ctx.save();
+		
+		ctx.fillStyle = color;  
+	//	x = 97;
+	//	y = 102;
+		var w = 14;
+		
+		var leaf = w / 3; //    |/\/\/\|
+		
+	//	console.log(leaf);
+		var down = y+ 14; //116;
+		var left = x - w;  // 83
+		var right = x + w;  //111
+		
+		ctx.beginPath();
+		ctx.moveTo(left,down);
+		ctx.lineTo(left,y);
+		ctx.bezierCurveTo(left,y-8,x-8,y-14,x,y-14);
+		ctx.bezierCurveTo(x + 6,y-14,right,y-8,right,y);
+		ctx.lineTo(right,down);
+		
+		ctx.lineTo(right-leaf,down - leaf);
+		ctx.lineTo(right-2*leaf,down);
+		ctx.lineTo(x,down - leaf);
+		ctx.lineTo(left + 2*leaf,down);
+		ctx.lineTo(left + leaf,down - leaf);
+		ctx.lineTo(left,down);
+	
+		ctx.fill();
+		
+	
+		//draw eyes..
+		var eyeWidthDis = 6;
+		var eyeHeightDis = -1;
+		var eyeWidthR = 4;
+		var eyeHeightR = 5;
+		var leftEye = {
+			x: x - eyeWidthDis,   //91
+			y : y + eyeHeightDis  //101
+		};
+		var rightEye = {
+			x: x + eyeWidthDis,   //103
+			y : y + eyeHeightDis  //101
+		};
+		
+	
+		
+		ctx.fillStyle = "white";
+		ctx.beginPath();
+		fillEyeFrame(ctx,leftEye.x,leftEye.y,eyeWidthR,eyeHeightR);
+		fillEyeFrame(ctx,rightEye.x,rightEye.y,eyeWidthR,eyeHeightR);
+		ctx.fill();
+		
+		ctx.fillStyle = "black";
+		fillEyesCircle(ctx,leftEye,rightEye,eyeWidthR,eyeHeightR,dir);
+		
+		ctx.restore();
+	}
+	
+	//眼框
+	function fillEyeFrame(ctx,x,y,eyeWidthR,eyeHeightR){
+
+	//		x: x - eyeWidthDis,   //91
+	//		y : y + eyeHeightDis  //101
+	//var eyeWidthR = 4;
+	//	var eyeHeightR = 5;
+		ctx.moveTo(x,y-eyeHeightR);
+		ctx.bezierCurveTo(x -eyeWidthR + 1 ,y-eyeHeightR,x -eyeWidthR,y-2,x -eyeWidthR,y);
+		ctx.bezierCurveTo(x -eyeWidthR,y + 2,x -eyeWidthR + 1 ,y + eyeHeightR,x,y + eyeHeightR);
+		ctx.bezierCurveTo(x + eyeWidthR - 1,y + eyeHeightR,x + eyeWidthR,y+2,x + eyeWidthR,y);
+		ctx.bezierCurveTo(x + eyeWidthR,y - 2,x + eyeWidthR -1,y - eyeHeightR,x,y - eyeHeightR);
+	}//end fillEyeFrame
+	
+	//眼睛
+	function fillEyesCircle(ctx,leftEye,rightEye,eyeWidthR,eyeHeightR,direction){
+		var targetLeft = {
+			x: leftEye.x,
+			y: leftEye.y
+		};
+		var targetRight = {
+			x: rightEye.x,
+			y: rightEye.y
+		};	
+		if('left' == direction){
+			targetLeft.x = leftEye.x - eyeWidthR + 2;
+			targetRight.x = rightEye.x - eyeWidthR + 2;
+		}else if('right' == direction){
+			targetLeft.x = leftEye.x + eyeWidthR-2;
+			targetRight.x = rightEye.x + eyeWidthR-2;
+		}else if('up' == direction){
+			targetLeft.y = leftEye.y - eyeHeightR+2;
+			targetRight.y = rightEye.y - eyeHeightR+2;
+		}else if('down' == direction){
+			targetLeft.y = leftEye.y + eyeHeightR-2;
+			targetRight.y = rightEye.y + eyeHeightR-2;
+		}
+		ctx.beginPath();
+		ctx.arc(targetLeft.x, targetLeft.y , 2, 0, 2*Math.PI, true);
+		ctx.fill();  
+		ctx.beginPath();
+		ctx.arc(targetRight.x, targetRight.y , 2, 0, 2*Math.PI, true);
+		ctx.fill();  
+	}//end fillEyesCircle
+	
+	draw2();
+	
+	function draw2() {
+		  var canvas = document.getElementById('canvas');
+		  if (canvas.getContext){
+			var ctx = canvas.getContext('2d');
+
+			ctx.translate(300,200);
+			
+
+
+			ctx.beginPath();
+			ctx.arc(37,37,13,Math.PI/7,-Math.PI/7,false);
+			ctx.lineTo(31,37);
+			ctx.fill();
+
+			for(var i=0;i<8;i++){
+			  ctx.fillRect(51+i*16,35,4,4);
+			}
+
+			for(i=0;i<6;i++){
+			  ctx.fillRect(115,51+i*16,4,4);
+			}
+
+			for(i=0;i<8;i++){
+			  ctx.fillRect(51+i*16,99,4,4);
+			}
+
+			ctx.beginPath();
+			ctx.moveTo(83,116);
+			ctx.lineTo(83,102);
+			ctx.bezierCurveTo(83,94,89,88,97,88);
+			ctx.bezierCurveTo(105,88,111,94,111,102);
+			ctx.lineTo(111,116);
+			ctx.lineTo(106.333,111.333);
+			ctx.lineTo(101.666,116);
+			ctx.lineTo(97,111.333);
+			ctx.lineTo(92.333,116);
+			ctx.lineTo(87.666,111.333);
+			ctx.lineTo(83,116);
+			ctx.fill();
+
+			ctx.fillStyle = "white";
+			ctx.beginPath();
+			ctx.moveTo(91,96);
+			ctx.bezierCurveTo(88,96,87,99,87,101);
+			ctx.bezierCurveTo(87,103,88,106,91,106);
+			ctx.bezierCurveTo(94,106,95,103,95,101);
+			ctx.bezierCurveTo(95,99,94,96,91,96);
+			ctx.moveTo(103,96);
+			ctx.bezierCurveTo(100,96,99,99,99,101);
+			ctx.bezierCurveTo(99,103,100,106,103,106);
+			ctx.bezierCurveTo(106,106,107,103,107,101);
+			ctx.bezierCurveTo(107,99,106,96,103,96);
+			ctx.fill();
+
+			ctx.fillStyle = "black";
+			ctx.beginPath();
+			ctx.arc(101,102,2,0,Math.PI*2,true);
+			ctx.fill();
+
+			ctx.beginPath();
+			ctx.arc(89,102,2,0,Math.PI*2,true);
+			ctx.fill();
+		  }
+	}
+
+
+	
+</script>
+</html>

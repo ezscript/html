@@ -1,0 +1,527 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<title>eat 1.7</title>
+	<style>
+		.downPanel{
+			background-color: rgb(30,30,30);
+		
+		}
+		dl {
+			display: block;
+			-webkit-margin-before: 0em;
+			-webkit-margin-after: 0em;
+			-webkit-margin-start: 0px;
+			-webkit-margin-end: 0px;
+		}
+		
+		dd{
+			padding-left:20px;
+			-webkit-margin-start: 0px;
+		}
+		
+	</style>
+	<script src="util.js"></script>
+	<script src="user.js"></script>
+	<script src="ghost.js"></script>
+	<script src="touch.js"></script>
+</head>
+
+<body>
+<div width="95%">
+<div>
+<canvas width="700" height="650" id="downPanle" 
+	style="border: 1px solid rgb(68, 68, 68); cursor: default;">
+</canvas>
+
+</body>
+<script language="javaScript">
+
+
+	
+	var beanLen = 4;
+	var unitLen = 5;
+	var p2pWidth = beanLen*unitLen;
+	
+	var wLen = 24;
+	var hLen = 31;
+	
+	var startX = 60;
+	var startY = 20;
+	var wallPoints = [];
+	var globalBeans = [];
+	var eatMap = {},isGameOver = false;
+
+	var ctx,beanUser,ghosts,wallPointsMap;
+	ghosts = [];
+	
+	var timerRefresh; //clearInterval(timerRefresh);
+//	clearInterval
+
+	//specialPoints
+	var specialPointR =  {x:wLen,y:Math.round(hLen/2)};
+		
+	var specialPointL = {x:0,y:Math.round(hLen/2)};
+	
+	drawDawnPanel('downPanle');
+	
+
+	
+	
+	function drawDawnPanel(id) {
+		var canvas = document.getElementById(id);
+		if (canvas == null)
+			return false;
+		ctx = canvas.getContext("2d");
+		ctx.translate(startX,startY);
+		beanUser = new BeanUser();
+		beanUser.init(ctx);
+		
+		addOneGhost(ctx,{
+			color:GostColor.violet,
+			moveUnit: ghost_move_2
+		});
+		addOneGhost(ctx,{
+			color:GostColor.blueness,
+			moveUnit: ghost_move_2
+		});
+		addOneGhost(ctx,{
+			color:GostColor.brown,
+			moveUnit: ghost_move_2
+		});
+	
+		addOneGhost(ctx,{
+			color:GostColor.orange,
+			moveUnit: ghost_move_2
+		});
+		
+		//边框
+		drawFrame(ctx,wallPoints);
+		
+		wallPointsMap = pointToMap(wallPoints);
+		
+		//设置隐藏机关
+		drawSpecialFrame(ctx);
+		
+	
+	
+	
+		
+		//beans
+		addBeans(ctx,wLen,hLen,wallPointsMap,wallPoints);
+		
+		timerRefresh = setInterval(refreshPanel,40);
+		
+	//	Current.repeat(refreshPanel,40);
+	}
+	
+
+	function addOneGhost(ctx,opt){
+		var ghost1 = new Ghost();
+		ghost1.init(ctx,opt);
+		ghosts.push(ghost1);
+	
+	}
+	
+//	var abc = 1;
+	function refreshPanel(){
+		if(isGameOver){
+			console.log('end');
+			clearInterval(timerRefresh);
+			return;
+		}
+		
+		var hasBean = refreshBeans(ctx,globalBeans,eatMap);
+		if(!hasBean){
+			//吃光了...
+			isGameOver = true;
+			toGameOverWin();
+			return;
+		}
+		
+		//clear...
+		beanUser.clearUser(ctx);
+		for(var i = 0 ; i< ghosts.length; i++){
+			ghosts[i].clearGhost(ctx);
+		}
+		
+		beanUser.refreshUser();
+	
+		for(var i = 0 ; i< ghosts.length; i++){
+			ghosts[i].refreshGhost();
+			if(compareEatUser(ghosts[i])){
+				isGameOver = true;
+				toGameOverLose();
+				return;
+			}
+		}
+	}
+	
+	function compareEatUser(ghost){
+		var boolX = Math.abs(beanUser.x - ghost.x) < 0.5;
+		var boolY = Math.abs(beanUser.y - ghost.y) < 0.5;
+		return boolX && boolY;
+	}
+	
+	
+	
+	function drawFrame(ctx,wallPoints){
+		//drawLines ...
+		ctx.save();
+		ctx.strokeStyle = '#0000FF';
+		ctx.fillStyle = '#0000FF'; 
+		drawRect(ctx,0,0,wLen,hLen,[1,1,1,1],true);
+		//up................
+		
+		var p = calUtil.pointByPoint(0,0,2,2);
+		drawRect(ctx,p.x,p.y,3,3);
+		p = calUtil.pointByPoint(0,0,7,2);
+		drawRect(ctx,p.x,p.y,3,3);
+		p = calUtil.pointByPoint(0,0,2,7);
+		drawRect(ctx,p.x,p.y,3,2);
+		p = calUtil.pointByPoint(0,0,7,7);
+		drawLine(ctx,p.x,p.y,8,false);
+		p = calUtil.pointByPoint(0,0,7,11);
+		drawLine(ctx,p.x,p.y,3,true);
+		
+		p = calUtil.pointByPoint(0,0,14,2);
+		drawRect(ctx,p.x,p.y,3,3);
+		p = calUtil.pointByPoint(0,0,19,2);
+		drawRect(ctx,p.x,p.y,3,3);
+		p = calUtil.pointByPoint(0,0,19,7);
+		drawRect(ctx,p.x,p.y,3,2);
+		
+		p = calUtil.pointByPoint(0,0,12,0);
+		drawLine(ctx,p.x,p.y,5,false);
+		
+	//	p = calUtil.pointByPoint(0,0,9,7);
+	//	drawRect(ctx,p.x,p.y,6,2);
+	//	p = calUtil.pointByPoint(0,0,12,9);
+	//	drawLine(ctx,p.x,p.y,2,false);
+		drawNail(ctx,9,7);		
+		
+		p = calUtil.pointByPoint(0,0,17,7);	
+		drawLine(ctx,p.x,p.y,8,false);
+		p = calUtil.pointByPoint(0,0,14,11);
+		drawLine(ctx,p.x,p.y,3,true);
+		
+		//center...........
+		
+		p = calUtil.pointByPoint(0,0,0,11);
+		drawRect(ctx,p.x,p.y,5,4,[1,1,1,0]);
+		
+		p = calUtil.pointByPoint(0,0,0,17);
+		drawRect(ctx,p.x,p.y,5,4,[1,1,1,0]);
+
+		p = calUtil.pointByPoint(0,0,19,11);
+		drawRect(ctx,p.x,p.y,5,4,[1,0,1,1]);
+		
+		p = calUtil.pointByPoint(0,0,19,17);
+		drawRect(ctx,p.x,p.y,5,4,[1,0,1,1]);
+	
+		//box........
+		p = calUtil.pointByPoint(0,0,9,13);
+		drawRect(ctx,p.x,p.y,6,4);
+		
+		p = calUtil.pointByPoint(0,0,17,17);	
+		drawLine(ctx,p.x,p.y,4,false);
+		p = calUtil.pointByPoint(0,0,7,17);	
+		drawLine(ctx,p.x,p.y,4,false);
+		
+		//down................
+//		p = calUtil.pointByPoint(0,0,9,19);
+//		drawRect(ctx,p.x,p.y,6,2);
+//		p = calUtil.pointByPoint(0,0,12,21);
+//		drawLine(ctx,p.x,p.y,2,false);	
+		drawNail(ctx,9,19);	
+		
+		
+		p = calUtil.pointByPoint(0,0,0,25);
+		drawRect(ctx,p.x,p.y,3,2,[1,1,1,0]);
+		
+		p = calUtil.pointByPoint(0,0,2,23);
+		drawRect(ctx,p.x,p.y,3,4,[1,1,0,0],true);
+		
+		p = calUtil.pointByPoint(0,0,2,29);
+		drawLine(ctx,p.x,p.y,8,true);
+		p = calUtil.pointByPoint(0,0,7,25);
+		drawLine(ctx,p.x,p.y,4,false);
+		
+		p = calUtil.pointByPoint(0,0,7,23);
+		drawLine(ctx,p.x,p.y,3,true);
+		
+		drawNail(ctx,9,25);		
+		
+		p = calUtil.pointByPoint(0,0,14,23);
+		drawLine(ctx,p.x,p.y,3,true);
+		p = calUtil.pointByPoint(0,0,19,23);
+		drawRect(ctx,p.x,p.y,3,4,[1,0,0,1],true);
+		
+		p = calUtil.pointByPoint(0,0,21,25);
+		drawRect(ctx,p.x,p.y,3,2,[1,0,1,1]);
+		
+		p = calUtil.pointByPoint(0,0,14,29);
+		drawLine(ctx,p.x,p.y,8,true);
+		p = calUtil.pointByPoint(0,0,17,25);
+		drawLine(ctx,p.x,p.y,4,false);
+		
+		ctx.restore();
+	
+	}//end drawFrame...
+	
+	
+	function drawSpecialFrame(ctx){
+		var pR =  specialPointR;
+		ctx.save();
+		dealSpecialPoint(specialPointL,'left');
+		dealSpecialPoint(specialPointR,'right');
+		
+		var p= specialPointL;
+	
+		
+		
+
+
+		
+		ctx.restore();
+	
+	}
+	function dealSpecialPoint(p,dir){
+		var big = 2;
+		var little = 1;
+		
+		if(dir == 'right'){
+			big = -2;
+			little = -1;
+		}
+		delPMKey(wallPointsMap,p);
+		
+		addPMKey(wallPointsMap,{x:p.x-big,y:p.y-1});
+		addPMKey(wallPointsMap,{x:p.x-little,y:p.y-1});
+		addPMKey(wallPointsMap,{x:p.x-big,y:p.y});
+		addPMKey(wallPointsMap,{x:p.x-big,y:p.y+1});
+		addPMKey(wallPointsMap,{x:p.x-little,y:p.y+1});
+		
+		var pCenter = calUtil.pointByPoint(0,0,p.x,p.y);
+		ctx.clearRect(pCenter.x - 5, pCenter.y - p2pWidth +3, 10, p2pWidth*2 -7);
+	}
+	
+	function addBeans(ctx,wLen,hLen,pointMap,wallPoints){
+		var beans = globalBeans;
+		for(var i = 1; i< wLen; i++){
+			for(var j = 1 ; j< hLen; j++){
+				var p = {x:i,y:j};
+				if(!containsPMKey(pointMap,p)){
+					beans.push(p);
+				}
+			}
+		}
+		drawBeans(ctx,beans);
+	}
+	
+	//钉子。。。
+	function drawNail(ctx,x,y){
+		p = calUtil.pointByPoint(0,0,x,y);
+		drawRect(ctx,p.x,p.y,6,2);
+		p = calUtil.pointByPoint(0,0,x + 3,y +2);
+		drawLine(ctx,p.x,p.y,2,false);	
+	}
+	
+	//drawRect	
+/*	
+	mark = [0,1,0,1]
+        0		  
+	|---------|
+   3|		  |1
+	|_________|
+	     2
+*/
+	function drawRect(ctx,x,y,wLen,hLen,mark,isLineMark){
+		
+		var boolMark = [1,1,1,1];
+		if(mark != undefined){
+			boolMark = mark;
+		}
+		
+		var isLine = false;
+		if(isLineMark != undefined ){
+			isLine = isLineMark;
+		}
+	
+		var isWrite0 = boolMark[0] == 1;
+		var isWrite1 = boolMark[1] == 1;
+		var isWrite2 = boolMark[2] == 1;
+		var isWrite3 = boolMark[3] == 1;
+		if(isWrite0){
+			drawLine(ctx, x,y,wLen ,true);
+		}
+		if(isWrite3){
+			drawLine(ctx, x,y, hLen ,false);
+		}
+		if(isWrite0&& isWrite3){
+			drawCorner(ctx,x,y,1);
+		}
+		var p = calUtil.getTargetPoint(x,y,hLen,false);
+		if(isWrite2){
+			drawLine(ctx, p.x,p.y, wLen ,true);
+		}
+		if(isWrite2&& isWrite3){
+			drawCorner(ctx,p.x,p.y,3);
+		}
+		
+		p = calUtil.getTargetPoint(x,y,wLen,true);
+		if(isWrite1){
+			drawLine(ctx, p.x,p.y, hLen ,false);
+		}
+		if(isWrite0&& isWrite1){
+			drawCorner(ctx,p.x,p.y,2);
+		}		
+		p = calUtil.getTargetPoint(p.x,p.y,hLen,false);
+		
+		if(isWrite1&& isWrite2){
+			drawCorner(ctx,p.x,p.y,4);	
+		}
+		
+		if(isLine){
+			return;
+		}
+		
+		//处理掉内部。。。
+		p = {};
+		p.x = x / (beanLen * unitLen);
+		p.y = y / (beanLen * unitLen);
+		for(var i = 1 ; i< wLen ; i++){
+			for(var j= 1;j < hLen; j++){
+				wallPoints.push({x: p.x + i,y:p.y+j});
+			}
+		}
+		
+	}
+	
+	//drawCorner
+/*	
+    1		   2
+	|---------|
+	|		  |
+	|_________|
+	3          4
+*/	
+	function drawCorner(ctx,x,y,mark){
+		ctx.clearRect(x-(beanLen/2)-2,y-(beanLen/2)-2,beanLen +4,beanLen+4);
+		var r = beanLen +3;
+		ctx.beginPath();
+		if(mark == 1){
+			ctx.arc(x+(beanLen/2)+2, y+(beanLen/2)+2, r,  Math.PI,  Math.PI*1.5, false);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.fillRect(x+(beanLen/2)-1, y+(beanLen/2)-1,2,2);
+		//	ctx.moveTo(x+(beanLen/2)-1, y+(beanLen/2));
+		//	ctx.lineTo(x+ beanLen, y+(beanLen/2));
+			
+	//		ctx.moveTo(x+(beanLen/2), y+(beanLen/2));
+	//		ctx.lineTo(x+(beanLen/2)-1, y+beanLen);
+//			ctx.stroke();
+		}else if(mark == 2){
+			ctx.clearRect(x-(beanLen/2)-3,y-(beanLen/2)-2,beanLen +4,beanLen+4);
+			ctx.arc(x-(beanLen/2)-3, y+(beanLen/2)+2, r,  Math.PI*1.5,  Math.PI*2, false);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.fillRect(x-beanLen, y+(beanLen/2)-1,2,2);
+		}else if(mark == 3){
+			ctx.clearRect(x-(beanLen/2)-2,y-(beanLen/2)-3,beanLen +4,beanLen+4);
+			ctx.arc(x+(beanLen/2)+2, y-(beanLen/2)-3, r,  Math.PI*0.5,  Math.PI, false);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.fillRect(x+(beanLen/2)-1, y-beanLen,2,2);
+		
+		}else if(mark == 4){
+			ctx.clearRect(x-(beanLen/2)-3,y-(beanLen/2)-3,beanLen +4,beanLen+4);
+			ctx.arc(x-beanLen-1, y-(beanLen/2)-3, r,  0,  0.5*Math.PI, false);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.fillRect(x-beanLen , y-beanLen,2,2);
+		}
+		
+	}//end drawCorner
+	
+	//drawLine
+	function drawLine(ctx,x,y,len,isHorizontal){
+		var lineLen = len * beanLen *unitLen ;
+		ctx.beginPath();
+		var sX = x-(beanLen/2) -1;
+		var sY = y-(beanLen/2) -1;
+		ctx.moveTo(sX,sY);
+		
+		if(isHorizontal){
+			ctx.lineTo(sX + lineLen,sY);
+			ctx.moveTo(sX + lineLen,sY + beanLen + 1);
+			ctx.lineTo(sX,sY+ beanLen + 1);
+		}else{
+			ctx.lineTo(sX,sY + lineLen);
+			ctx.moveTo(sX+ beanLen + 1,sY  + lineLen);
+			ctx.lineTo(sX+ beanLen + 1,sY);
+		}
+
+		ctx.stroke();
+		var p = {};
+		p.x = x / (beanLen * unitLen);
+		p.y = y / (beanLen * unitLen);
+		wallPoints.push(p);
+		
+		for(var i = 0; i< len; i++){
+			if(isHorizontal){
+				wallPoints.push({
+					x: p.x + i +1 ,
+					y : p.y
+				});
+			}else{
+				wallPoints.push({
+					x: p.x ,
+					y : p.y +i +1
+				});
+			}
+		}
+	}//end drawLine
+	
+	
+	//drawBean...
+	function drawBeans(ctx,beans){
+		if(beans == undefined || 0 == beans.length){
+			return;
+		}	
+		ctx.save();
+		ctx.fillStyle = 'rgb(237, 237, 0)'; // 黄
+		for(var i = 0; i < beans.length; i++){
+			drawOneBean(ctx,beans[i].x,beans[i].y);
+		}
+		ctx.restore();
+		
+	}
+	
+	
+	
+	
+
+	//gameOver...
+	function toGameOverWin(){
+		Current.sleep(600);
+	
+	}
+
+	function toGameOverLose(){
+		Current.sleep(600);
+		//1.清除所有鬼
+		//2.重绘豆子
+		//3.user逐渐消失....
+		for(var i = 0 ; i< ghosts.length; i++){
+			ghosts[i].clearGhost(ctx);
+		}
+		refreshBeans(ctx,globalBeans,eatMap);
+		// user ...
+		beanUser.disappear();
+	
+	}//end toGameOverLose
+
+	
+</script>
+</html>
