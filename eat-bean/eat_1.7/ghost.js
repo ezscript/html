@@ -1,3 +1,6 @@
+/**
+ * ghost move speed
+ */
 var ghost_move_1 = 0.25;
 var ghost_move_2 = 0.2;
 

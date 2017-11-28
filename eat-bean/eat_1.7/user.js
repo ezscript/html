@@ -1,4 +1,6 @@
-
+/**
+ * user move speed
+ */
 var user_move = 0.25;
 
 function BeanUser(){
