@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<plugin
+   id="newPlugin"
+   iconfile="new.png"
+   description="new Plugin"
+   tooltip="This is a new plugin test step"
+   category="Transform"
+   classname="test.ma.org.step.deal.DealPluginMeta">
+   <libraries>
+    <library name="new.jar"/>
+    </libraries>
+    
+   <localized_category>
+     <category locale="en_US">Transform</category>
+     <category locale="zh_CN">转换</category>
+   </localized_category>
+   <localized_description>
+     <description locale="en_US">deal test plugin</description>
+	 <description locale="zh_CN">一个测试</description>
+   </localized_description>
+   <localized_tooltip>
+     <tooltip locale="en_US">This is an new test for a plug</tooltip>
+   </localized_tooltip>
+   
+</plugin>
