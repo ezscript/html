@@ -5,8 +5,9 @@
 /PaloDimInput.png
 /PaloDimOutput.png
 /Thumbs.db
-/hl7-input.png
 /images/
+/test/
+/hl7-input.png
 /kettle-database-types.xml
 /kettle-import-rules.xml
 /kettle-job-entries.xml
@@ -14,8 +15,6 @@
 /kettle-repositories.xml
 /kettle-steps.xml
 /kettle-variables.xml
-/libext/
 /log4j.xml
 /mllp-ack.png
 /mllp-in.png
-/test/
